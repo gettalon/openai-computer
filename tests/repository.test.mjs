@@ -27,12 +27,11 @@ test('plugin metadata is portable and points at the bundle skill', async () => {
   assert.doesNotMatch(JSON.stringify(plugin), /@|\/Users\//);
 });
 
-test('child spawns with full banner and sky trusted service', async () => {
+test('child uses the official unified CUA launcher', async () => {
   const child = await readFile(join(bundle, 'scripts', 'child-mcp.mjs'), 'utf8');
-  assert.match(child, /banner\.js/);
-  assert.doesNotMatch(child, /banner-browser\.js/);
-  assert.match(child, /sky.*@oai\/sky\/service/);
-  assert.match(child, /computer-description\.md/);
+  assert.match(child, /unified-computer-use.*scripts.*launch\.mjs/);
+  assert.match(child, /CUA_REPL_ENABLED_SURFACES: 'browser,computer'/);
+  assert.match(child, /CUA_REPL_NODE_REPL_PATH: paths\.nodeRepl/);
 });
 
 test('probe verifies the computer surface, not browser tabs', async () => {

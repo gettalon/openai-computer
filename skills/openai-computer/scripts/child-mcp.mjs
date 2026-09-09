@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { delimiter, join } from 'node:path';
 
@@ -18,59 +18,29 @@ export class ChildMcp {
     await mkdir(this.runtimeDir, { recursive: true, mode: 0o700 });
     const { paths, appVersion, nodeModuleDirs } = this.runtime;
     const appResources = paths.node.replace(/\/cua_node\/bin\/node$/, '');
-    const cuaResources = join(appResources, 'plugins', 'openai-bundled', 'plugins', 'unified-computer-use', 'resources');
-    const [banner, baseDescription, browserDescription, computerDescription, outputDescription, resetDescription] = await Promise.all([
-      readFile(join(cuaResources, 'banner.js'), 'utf8'),
-      readFile(join(cuaResources, 'js-tool-description.md'), 'utf8'),
-      readFile(join(cuaResources, 'browser-description.md'), 'utf8'),
-      readFile(join(cuaResources, 'computer-description.md'), 'utf8'),
-      readFile(join(cuaResources, 'js-output-description.md'), 'utf8'),
-      readFile(join(cuaResources, 'js-reset.md'), 'utf8'),
-    ]);
     const env = {
-      HOME: process.env.HOME,
-      USER: process.env.USER,
-      LOGNAME: process.env.LOGNAME,
+      ...process.env,
+      HOME: process.env.HOME ?? homedir(),
       LANG: process.env.LANG ?? 'en_US.UTF-8',
-      SHELL: '/bin/zsh',
-      PATH: '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin',
-      TMPDIR: this.runtimeDir,
       CODEX_HOME: process.env.CODEX_HOME ?? join(homedir(), '.codex'),
       CODEX_CLI_PATH: paths.codex,
-      NODE_REPL_NODE_PATH: paths.node,
-      NODE_REPL_NODE_MODULE_DIRS: nodeModuleDirs.join(delimiter),
-      NODE_REPL_TRUSTED_CODE_PATHS: [
-        process.env.CODEX_HOME ?? join(homedir(), '.codex'),
-        // --disable-sandbox below applies only to the inner Node REPL inside the signed Codex sandbox.
-        ...nodeModuleDirs,
-      ].join(':'),
-      NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS: '1500',
-      NODE_REPL_TRUSTED_SERVICES: JSON.stringify({ browser: paths.browserService, sky: '@oai/sky/service' }),
-      NODE_REPL_JS_BANNER: banner,
-      NODE_REPL_TOOL_OVERRIDES: JSON.stringify({
-        server_instructions: 'UI automation through a persistent JavaScript session using the initialized OpenAI computer-use CUA API.',
-        tools: {
-          js: {
-            description: [baseDescription, browserDescription, computerDescription, outputDescription].join('\n\n'),
-            field_descriptions: { code: 'JavaScript to execute using the initialized OpenAI computer-use CUA runtime.' },
-          },
-          js_reset: { description: resetDescription },
-        },
-      }),
+      CUA_REPL_NODE_REPL_PATH: paths.nodeRepl,
+      CUA_REPL_ENABLED_SURFACES: 'browser,computer',
       BROWSER_USE_AVAILABLE_BACKENDS: 'chrome,iab',
       BROWSER_USE_CODEX_APP_BUILD_FLAVOR: 'prod',
       BROWSER_USE_CODEX_APP_VERSION: appVersion,
       BROWSER_USE_TINYSKY_ENABLED: '1',
+      NODE_REPL_NODE_PATH: paths.node,
+      NODE_REPL_NODE_MODULE_DIRS: nodeModuleDirs.join(delimiter),
+      NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS: '1500',
+      NODE_REPL_TRUSTED_CODE_PATHS: [
+        process.env.CODEX_HOME ?? join(homedir(), '.codex'),
+        ...nodeModuleDirs,
+      ].join(':'),
     };
+    const launcher = join(appResources, 'plugins', 'openai-bundled', 'plugins', 'unified-computer-use', 'scripts', 'launch.mjs');
 
-    this.child = spawn(paths.codex, [
-      'sandbox',
-      '-c', 'sandbox_mode="workspace-write"',
-      '-c', 'shell_environment_policy.inherit="all"',
-      '-c', `sandbox_workspace_write.writable_roots=[${JSON.stringify(env.CODEX_HOME)}]`,
-      '--allow-unix-socket', '/tmp/codex-browser-use',
-      '--', paths.nodeRepl, '--disable-sandbox',
-    ], {
+    this.child = spawn(paths.node, [launcher], {
       cwd: this.runtimeDir,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],

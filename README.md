@@ -43,7 +43,7 @@ Prefer the `openai-chrome` skill for browser-only tasks. Read-only inspection do
 2. Claude Code discovers the installed `.claude-plugin/plugin.json` as `openai-computer@skills-dir`.
 3. `.mcp.json` starts the local `scripts/proxy-server.mjs` MCP server.
 4. `runtime-resolver.mjs` reads the existing OpenAI native-host registry.
-5. `child-mcp.mjs` launches the existing signed Codex sandbox/runtime with the full banner (`browser + computer`) and the `sky` trusted service.
+5. `child-mcp.mjs` launches OpenAI's official signed `unified-computer-use/scripts/launch.mjs` with both `browser` and `computer` surfaces enabled. This launcher initializes the native Sky service correctly.
 6. No second model or `codex exec` is used.
 
 The computer surface unlocks only at `node_repl` spawn time. Running `setupCUA({ computer: true })` in-session does not enable `cua.getApp`; the wrapper sets the banner and trusted services before spawn instead.
