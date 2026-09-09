@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "openai-computer",
+  "version": "0.1.0",
+  "description": "Unofficial bridge exposing an already-installed OpenAI computer-use CUA runtime (native apps + browsers) to Claude Code through a local MCP server.",
+  "author": {
+    "name": "hunter"
+  },
+  "license": "MIT",
+  "keywords": ["openai", "computer-use", "cua", "mcp", "claude-code", "ui-automation"],
+  "skills": ["./"]
+}

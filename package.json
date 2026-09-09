@@ -1,0 +1,19 @@
+{
+  "name": "openai-computer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Unofficial Claude Code bridge for an already-installed OpenAI computer-use CUA runtime",
+  "license": "MIT",
+  "repository": "github:gettalon/openai-computer",
+  "engines": {
+    "node": ">=22.20.0"
+  },
+  "scripts": {
+    "test": "node --test tests/repository.test.mjs",
+    "validate:plugin": "claude plugin validate ./skills/openai-computer --strict",
+    "list:skills": "skills add . --list",
+    "probe": "node skills/openai-computer/scripts/probe.mjs",
+    "test:live": "python3 tests/proxy-live.py"
+  }
+}

@@ -1,0 +1,17 @@
+.DS_Store
+node_modules/
+coverage/
+*.log
+.env
+.env.*
+.runtime/
+**/.runtime/
+.tmp*
+**/.tmp*
+.probe-*
+**/.probe-*
+/.claude/
+/.codex/
+/.agents/
+/CLAUDE.md
+/scripts/verify-repository.mjs
